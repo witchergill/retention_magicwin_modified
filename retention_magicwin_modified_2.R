@@ -139,14 +139,14 @@ while(T){
                 
                 
                 if(is.na(data.ret$LastDepositOn[i])){
-                  if(data.ret$FirstDepositOn[i]<=Sys.Date()-25){
+                  if(data.ret$FirstDepositOn[i]<=Sys.Date()-10){
                     data.s<-rbind(data.s,data.ret[i,])
                   }else{
                     next
                   }
                   
                 }else{
-                  if(data.ret$LastDepositOn[i]<=Sys.Date()-25){
+                  if(data.ret$LastDepositOn[i]<=Sys.Date()-10){
                     data.s<-rbind(data.s,data.ret[i,])
                   }else{
                     next
@@ -157,15 +157,15 @@ while(T){
             
             #now filtering the duplicates based on the user specific number of data to not be repeated
             #retrieving all the userids on which user have worked
-            data.user<-range_read(ss = agnt.data$link[k],sheet = agnt.data$data.source[k],col_names = T,range = ifelse(agnt.data$site[k]=='CLUB' | agnt.data$site[k]=='BIZZ',"C:C","B:B"))
+            data.user<-range_read(ss = agnt.data$link[k],sheet = agnt.data$data.source[k],col_names = T,range = "C:C")
             
-            if(nrow(data.user)<899){
-              indx.user.data<-1
+            if(nrow(data.user)<1200){
+              data.user<-data.user[1:nrow(data.user),]
             }else{
-              indx.user.data<-899
+              data.user<-data.user[(nrow(data.user)-1200):nrow(data.user),]
             }
             
-            data.user<-data.user[(nrow(data.user)-indx.user.data):nrow(data.user),]
+            
             colnames(data.user)<-"id"
             #now removing all the userids from the agents data.ret database which he already worked upon
             data.s<-data.s[!(data.s$`UserID`%in% data.user$id),]
@@ -237,14 +237,14 @@ while(T){
                 next
               }
               if(is.na(data.ret$`Last DepositOn (Date)`[i])){
-                if(data.ret$`First DepositOn (Date)`[i]<=Sys.Date()-25){
+                if(data.ret$`First DepositOn (Date)`[i]<=Sys.Date()-10){
                   data.s<-rbind(data.s,data.ret[i,])
                 }else{
                   next
                 }
                 
               }else{
-                if(data.ret$`Last DepositOn (Date)`[i]<=Sys.Date()-25){
+                if(data.ret$`Last DepositOn (Date)`[i]<=Sys.Date()-10){
                   data.s<-rbind(data.s,data.ret[i,])
                 }else{
                   next
@@ -256,13 +256,13 @@ while(T){
             #retrieving all the userids on which user have worked
             data.user<-range_read(ss = agnt.data$link[k],sheet = "1-2 Mnths",col_names = T,range = "B:B")
             
-            if(nrow(data.user)<899){
-              indx.user.data<-1
+            if(nrow(data.user)<1200){
+              data.user<-data.user[1:nrow(data.user),]
             }else{
-              indx.user.data<-899
+              data.user<-data.user[(nrow(data.user)-1200):nrow(data.user),]
             }
             
-            data.user<-data.user[(nrow(data.user)-indx.user.data):nrow(data.user),]
+            #data.user<-data.user[(nrow(data.user)-indx.user.data):nrow(data.user),]
             colnames(data.user)<-"id"
             #now removing all the userids from the agents data.ret database which he already worked upon
             data.s<-data.s[!(data.s$`User ID`%in% data.user$id),]
@@ -322,8 +322,165 @@ while(T){
           
         }
         
-        #for the ftd allotment
+        #for the combined allotment
         
+        if(agnt.data$Data.Type[k]=='COMB'){
+          
+          if(agnt.data$site[k]=="BIZZ"|agnt.data$site[k]=="CLUB"){
+            
+            #working process if the data is of site club and bizz
+            
+            data.ftd<-data[data$LastDeposit==0,]
+            #data.ftd<-data.ftd[,-2]
+            data.ftd<-data.ftd[(data.ftd$FirstDepositOn>=agnt.data$From.Date[k] & data.ftd$FirstDepositOn<=agnt.data$To.Date[k]),]
+            
+            if(meth=="SHOW"){         #checking whether client want to check the number of records for the particular dates or wants to write directly
+              success=T
+              while(success){
+                looping=T
+                
+                tryCatch(range_write(agents_data,data = as.data.frame(nrow(data.ftd)),sheet = 'retention_modi',range = str_c('I',1+which(raw.agnt.data$Agent==agnt.data$Agent[k])),col_names = F,reformat = F),error=function(e){
+                  
+                  Sys.sleep(6)
+                  print('error')
+                  assign('looping',FALSE,envir = .GlobalEnv)
+                  
+                })
+                
+                if(looping){
+                  success=F
+                }
+                
+              }
+              
+              
+              
+            }else{
+              
+              success=T
+              while(success){
+                looping=T
+                
+                tryCatch(sheet_append(agnt.data$link[k],data = data.ftd,sheet = "FTD"),error=function(e){
+                  
+                  Sys.sleep(6)
+                  print('error')
+                  assign('looping',FALSE,envir = .GlobalEnv)
+                  
+                })
+                
+                if(looping){
+                  success=F
+                }
+                
+              }
+              
+              
+            }
+            
+            
+            
+          }else{
+            
+            #working process if the data is of site net and games
+            data.ftd<-data
+            
+            
+            data.s<-data.frame()
+            for(i in 1:nrow(data.ftd)){
+              if((is.na(data.ftd$`Last DepositOn (Date)`[i]) & is.na(data.ftd$`First DepositOn (Date)`[i]))){
+                next
+              }
+              if(is.na(data.ftd$`Last DepositOn (Date)`[i])){
+                if(data.ftd$`First DepositOn (Date)`[i]<=Sys.Date()){          #only 5 days for combo.case
+                  data.s<-rbind(data.s,data.ftd[i,])
+                }else{
+                  next
+                }
+                
+              }else{
+                if(data.ftd$`Last DepositOn (Date)`[i]<=Sys.Date()){
+                  data.s<-rbind(data.s,data.ftd[i,])
+                }else{
+                  next
+                }
+              }
+            }
+            #coalesce function 
+            #data.s<-arrange(data,desc(coalesce(data$`Last DepositOn (Date)`,data$`First DepositOn (Date)`)))
+            data.s$ndate<-coalesce(data.s$`Last DepositOn (Date)`,data.s$`First DepositOn (Date)`)
+            #data.s<-data[data$`Last Deposit`==0,]
+            data.s<-arrange(data.s,desc(data.s$ndate))
+            #data.s<-data.s[(data.s$ndate>=agnt.data$From.Date[k] & data.s$ndate<=agnt.data$To.Date[k]),]
+            #now filtering the duplicates based on the user specific number of data to not be repeated
+            #retrieving all the userids on which user have worked
+            data.user<-range_read(ss = agnt.data$link[k],sheet = "FTD",col_names = T,range = "B:B")
+            
+            if(nrow(data.user)<1200){
+              data.user<-data.user[1:nrow(data.user),]
+            }else{
+              data.user<-data.user[(nrow(data.user)-1200):nrow(data.user),]
+            }
+            
+            colnames(data.user)<-"id"
+            #now removing all the userids from the agents data.ret database which he already worked upon
+            data.s<-data.s[!(data.s$`User ID`%in% data.user$id),]
+            
+            #reading data from the agents sheet
+            
+            from.date<-min(data.s$`Last DepositOn (Date)`[1:200])
+            to.date<-max(data.s$`Last DepositOn (Date)`[1:200])
+            
+            if(meth=="SHOW"){         #checking whether client want to check the number of records for the particular dates or wants to write directly
+              success=T
+              while(success){
+                looping=T
+                
+                tryCatch(range_write(agents_data,data = as.data.frame(nrow(data.s)),sheet = 'retention_modi',range = str_c('I',1+which(raw.agnt.data$Agent==agnt.data$Agent[k])),col_names = F,reformat = F),error=function(e){
+                  
+                  Sys.sleep(6)
+                  print('error')
+                  assign('looping',FALSE,envir = .GlobalEnv)
+                  
+                })
+                
+                if(looping){
+                  success=F
+                }
+                
+              }
+              
+              
+              
+            }else{
+              
+              success=T
+              while(success){
+                looping=T
+                
+                tryCatch(sheet_append(agnt.data$link[k],data = data.s[1:200,-8:-9],sheet = "FTD"),error=function(e){
+                  
+                  Sys.sleep(6)
+                  print('error')
+                  assign('looping',FALSE,envir = .GlobalEnv)
+                  
+                })
+                
+                if(looping){
+                  success=F
+                }
+                
+              }
+              
+              
+            }
+            
+            
+            
+          }
+        }
+        
+        #for FTD only data updation
         if(agnt.data$Data.Type[k]=='FTD'){
           
           if(agnt.data$site[k]=="BIZZ"|agnt.data$site[k]=="CLUB"){
@@ -383,9 +540,10 @@ while(T){
           }else{
             
             #working process if the data is of site net and games
-            
-            data.ftd<-data[data$`Last Deposit`==0,]
-            data.ftd<-data.ftd[(data.ftd$`First DepositOn (Date)`>=agnt.data$From.Date[k] & data.ftd$`First DepositOn (Date)`<=agnt.data$To.Date[k]),]
+            data.ftd<-arrange(data,desc(coalesce(data$`Last DepositOn (Date)`,data$`First DepositOn (Date)`)))
+            data.ftd$ndate<-coalesce(data$`Last DepositOn (Date)`,data$`First DepositOn (Date)`)
+            #data.ftd<-data[data$`Last Deposit`==0,]
+            data.ftd<-data.ftd[(data.ftd$ndate>=agnt.data$From.Date[k] & data.ftd$ndate<=agnt.data$To.Date[k]),]
             
             if(meth=="SHOW"){         #checking whether client want to check the number of records for the particular dates or wants to write directly
               success=T
@@ -414,7 +572,7 @@ while(T){
               while(success){
                 looping=T
                 
-                tryCatch(sheet_append(agnt.data$link[k],data = data.ftd[,-8],sheet = agnt.data$data.source[k]),error=function(e){
+                tryCatch(sheet_append(agnt.data$link[k],data = data.ftd[,-8],sheet = ""),error=function(e){
                   
                   Sys.sleep(6)
                   print('error')
@@ -438,29 +596,25 @@ while(T){
         
         
         #pasting the to and from dates
-        if(agnt.data$data.source[k]!='FTD'){
-          to.fro.date<-data.frame('a'=from.date,'b'=to.date)
-          success=T
-          while(success){
-            looping=T
+        to.fro.date<-data.frame('a'=from.date,'b'=to.date)
+        
+        success=T
+        while(success){
+          looping=T
+          
+          tryCatch(range_write(agents_data,data = to.fro.date,sheet = 'retention_modi',range = str_c('F',1+which(raw.agnt.data$Agent==agnt.data$Agent[k]),":","G",1+which(raw.agnt.data$Agent==agnt.data$Agent[k])),col_names = F,reformat = F),error=function(e){
             
-            tryCatch(range_write(agents_data,data = to.fro.date,sheet = 'retention_modi',range = str_c('F',1+which(raw.agnt.data$Agent==agnt.data$Agent[k]),":","G",1+which(raw.agnt.data$Agent==agnt.data$Agent[k])),col_names = F,reformat = F),error=function(e){
-              
-              Sys.sleep(6)
-              print('error')
-              assign('looping',FALSE,envir = .GlobalEnv)
-              
-            })
+            Sys.sleep(6)
+            print('error')
+            assign('looping',FALSE,envir = .GlobalEnv)
             
-            if(looping){
-              success=F
-            }
-            
+          })
+          
+          if(looping){
+            success=F
           }
+          
         }
-        
-        
- 
         
       }
       
