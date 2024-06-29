@@ -113,6 +113,13 @@ while(T){
           
         }
         
+        #creating a condition which will evaluate the agents alloted data and accordingly set the data.reach.freq object
+        
+        if(nrow(data)>=2200){
+          data.reach.freq=1199
+        }else if(nrow(data)<2200){
+          data.reach.freq=600
+        }
         
         
         #for retention data allotment
@@ -159,10 +166,10 @@ while(T){
             #retrieving all the userids on which user have worked
             data.user<-range_read(ss = agnt.data$link[k],sheet = agnt.data$data.source[k],col_names = T,range = "C:C")
             
-            if(nrow(data.user)<1200){
+            if(nrow(data.user)<data.reach.freq){
               data.user<-data.user[1:nrow(data.user),]
             }else{
-              data.user<-data.user[(nrow(data.user)-1200):nrow(data.user),]
+              data.user<-data.user[(nrow(data.user)-data.reach.freq):nrow(data.user),]
             }
             
             
@@ -256,10 +263,10 @@ while(T){
             #retrieving all the userids on which user have worked
             data.user<-range_read(ss = agnt.data$link[k],sheet = "1-2 Mnths",col_names = T,range = "B:B")
             
-            if(nrow(data.user)<1200){
+            if(nrow(data.user)<data.reach.freq){
               data.user<-data.user[1:nrow(data.user),]
             }else{
-              data.user<-data.user[(nrow(data.user)-1200):nrow(data.user),]
+              data.user<-data.user[(nrow(data.user)-data.reach.freq):nrow(data.user),]
             }
             
             #data.user<-data.user[(nrow(data.user)-indx.user.data):nrow(data.user),]
@@ -416,10 +423,10 @@ while(T){
             #retrieving all the userids on which user have worked
             data.user<-range_read(ss = agnt.data$link[k],sheet = "FTD",col_names = T,range = "B:B")
             
-            if(nrow(data.user)<1200){
+            if(nrow(data.user)<data.reach.freq){
               data.user<-data.user[1:nrow(data.user),]
             }else{
-              data.user<-data.user[(nrow(data.user)-1200):nrow(data.user),]
+              data.user<-data.user[(nrow(data.user)-data.reach.freq):nrow(data.user),]
             }
             
             colnames(data.user)<-"id"
