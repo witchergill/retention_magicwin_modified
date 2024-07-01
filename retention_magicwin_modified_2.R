@@ -115,9 +115,9 @@ while(T){
         
         #creating a condition which will evaluate the agents alloted data and accordingly set the data.reach.freq object
         
-        if(nrow(data)>=2200){
+        if(nrow(data)>=4000){
           data.reach.freq=1199
-        }else if(nrow(data)<2200){
+        }else if(nrow(data)<4000){
           data.reach.freq=600
         }
         
@@ -488,6 +488,7 @@ while(T){
         }
         
         #for FTD only data updation
+        
         if(agnt.data$Data.Type[k]=='FTD'){
           
           if(agnt.data$site[k]=="BIZZ"|agnt.data$site[k]=="CLUB"){
@@ -598,6 +599,43 @@ while(T){
             
             
             
+          }
+        }
+        
+        #for daily FTD data Updation
+        
+        if(all(agnt.data$Data.Type=='DAILY.FTD')){
+          #extracting all the agencies i.e selected 
+          unique.sites=unique(agnt.data$site)
+          
+          #working condition for diffent unique.sites daily ftd data placement
+          for(kk in 1:length(unique.sites)){
+            #condition for .games daily ftds
+            if(unique.sites[kk]=="GAMES"){
+              agnt.data.games=agnt.data[agnt.data$site==unique.sites[kk],]
+              #finding out how much data each selected agent will get
+              ftd.data.games<-range_read(retention_data_games,sheet = 'FTD',range = "A:H",col_names = T)
+              ftd.data.games<-ftd.data.games[sample(1:nrow(ftd.data.games),nrow(ftd.data.games)),]
+              data.lot<-floor(nrow(ftd.data.games)/nrow(agnt.data.games))
+              data.lot.remainder=nrow(ftd.data.games) %% nrow(agnt.data.games)
+              for(kkk in 1:nrow(agnt.data.games)){
+                
+                if(kkk==nrow(agnt.data.games)){
+                                                            #alloting all the data to the last agent
+                  sheet_append(ss = agnt.data.games$link[kkk],data = ftd.data.games[((data.lot*kkk)-data.lot+1):(data.lot*kkk+data.lot.remainder),],sheet = 'FTD')
+                  
+                }else{
+                                                                #alloting data according to the number of agents selected
+                  sheet_append(ss = agnt.data.games$link[kkk],data = ftd.data.games[((data.lot*kkk)-data.lot+1):(data.lot*kkk),],sheet = 'FTD')
+                  
+                }
+                
+                
+                
+                
+              }
+            }
+
           }
         }
         
