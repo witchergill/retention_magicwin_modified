@@ -112,11 +112,11 @@ while(T){
               
               if(kkk==nrow(agnt.data.games)){
                 #alloting all the data to the last agent
-                sheet_append(ss = agnt.data.games$link[kkk],data = ftd.data.games[((data.lot*kkk)-data.lot+1):(data.lot*kkk+data.lot.remainder),],sheet = 'FTD')
+                sheet_append(ss = agnt.data.games$link[kkk],data = ftd.data.games[((data.lot*kkk)-data.lot+1):(data.lot*kkk+data.lot.remainder),],sheet = 'data 1')
                 
               }else{
                 #alloting data according to the number of agents selected
-                sheet_append(ss = agnt.data.games$link[kkk],data = ftd.data.games[((data.lot*kkk)-data.lot+1):(data.lot*kkk),],sheet = 'FTD')
+                sheet_append(ss = agnt.data.games$link[kkk],data = ftd.data.games[((data.lot*kkk)-data.lot+1):(data.lot*kkk),],sheet = 'data 1')
                 
               }
               
