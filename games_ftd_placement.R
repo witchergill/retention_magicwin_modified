@@ -15,6 +15,10 @@ data.games$`Phone No`<-str_replace_all(data.games$`Phone No`," ","")
 last.number<-range_read(retention_data_games,sheet = 'FTD',range = "B:B",col_names = T)
 last.number<-last.number$`User ID`[nrow(last.number)]
 
+
+#arranging the data.games dataset according to ftd date
+data.games<-arrange(data.games,desc(data.games$`First DepositOn (Date)`))
+
 #now extracting all the ftds which are not alloted to the ftd sheet
 new.games.ftd.data<-data.games[1:which(data.games$`User ID`==last.number),]
 #selecting only ftds
