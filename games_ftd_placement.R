@@ -20,5 +20,12 @@ new.games.ftd.data<-data.games[1:which(data.games$`User ID`==last.number),]
 #selecting only ftds
 new.games.ftd.data<-new.games.ftd.data[new.games.ftd.data$`First Deposit`!=0 & new.games.ftd.data$`Last Deposit`==0,]
 
+bonus<-range_read(retention_data_games,sheet = 'bonus',range = "A:A",col_names = T)
+
+new.games.ftd.data<-new.games.ftd.data[!(new.games.ftd.data$`Phone No`%in%bonus$NUMBERS),]
+
 #writing the new ftd data
 range_write(retention_data_games,data = arrange(new.games.ftd.data[-nrow(new.games.ftd.data),c(2,4,10:14,18)],`First DepositOn (Date)`),sheet = 'FTD',range = 'A:H',col_names = T,reformat = F)
+
+
+
