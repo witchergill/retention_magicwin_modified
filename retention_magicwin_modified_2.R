@@ -104,7 +104,11 @@ while(T){
           if(unique.sites[kk]=="GAMES"){
             agnt.data.games=agnt.data[agnt.data$site==unique.sites[kk],]
             #finding out how much data each selected agent will get
-            ftd.data.games<-range_read(retention_data_games,sheet = 'FTD',range = "A:G",col_names = T)
+            ftd.data.games<-range_read(retention_data_games,sheet = 'FTD',range = "A:E",col_names = T)
+            for(i in 1:nrow(ftd.data.games)){
+              ftd.data.games$Phone.No[i]<-subset(data.games$`Phone No`,data.games$`User ID`==ftd.data.games$`User ID`[i])
+            }
+            ftd.data.games<-ftd.data.games[,c(1:2,6,3:5)]
             ftd.data.games<-ftd.data.games[sample(1:nrow(ftd.data.games),nrow(ftd.data.games)),]
             data.lot<-floor(nrow(ftd.data.games)/nrow(agnt.data.games))
             data.lot.remainder=nrow(ftd.data.games) %% nrow(agnt.data.games)
